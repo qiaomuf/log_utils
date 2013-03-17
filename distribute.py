@@ -47,15 +47,17 @@ for number in numbers:
     number_contribution[interval] += number
     number_distribution[interval] += 1
 
+# Printing...
 keys = sorted(number_contribution.keys())
+total_stars = 250
 print 'Distribution'
 for i in range(len(number_contribution)):
     distribution = number_distribution[keys[i]]
-    print "%-7s %10.2f: %s"%(i * span, number_distribution[keys[i]],'*' * int(distribution * 100 / float(len(numbers)) + 1))
+    print "%-7s %10.2f: %s"%(i * span, number_distribution[keys[i]],'*' * int(distribution * total_stars / float(len(numbers)) + 1))
 print
 
 print 'Contribution'
 for i in range(len(number_contribution)):
-    contribution = 100 * number_contribution[keys[i]] / float(sum(numbers))
-    print "%-7s %10.2f%%: %s"%(i * span, contribution, '*' * int(contribution + 1))
+    contribution = number_contribution[keys[i]] / float(sum(numbers))
+    print "%-7s %10.2f%%: %s"%(i * span, contribution * 100, '*' * int(total_stars * contribution + 1))
 print

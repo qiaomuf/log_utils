@@ -20,7 +20,7 @@ for line in file:
         field_string = item.split(field_value_separator)
         if field_string[0] in fields_to_pick and len(field_string) == 2:
             selected_fields[field_string[0]] = field_string[1]
-    if not selected_fields:
+    if not any(selected_fields):
         continue
     print ' '.join(selected_fields[field] for field in fields_to_pick)
     selected_count += 1

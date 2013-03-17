@@ -47,17 +47,15 @@ for number in numbers:
     number_contribution[interval] += number
     number_distribution[interval] += 1
 
-print "TimeInterval:"
+keys = sorted(number_contribution.keys())
+print 'Distribution'
 for i in range(len(number_contribution)):
-    print "%-10s"%((i + 1) * span),
+    distribution = number_distribution[keys[i]]
+    print "%-7s %10.2f: %s"%(i * span, number_distribution[keys[i]],'*' * int(distribution * 100 / float(len(numbers)) + 1))
 print
 
-print "Contribution:"
-for item in sorted(number_contribution.keys()):
-    print "%-10.2f"%(100 * number_contribution[item] / sum(numbers)),
+print 'Contribution'
+for i in range(len(number_contribution)):
+    contribution = 100 * number_contribution[keys[i]] / float(sum(numbers))
+    print "%-7s %10.2f%%: %s"%(i * span, contribution, '*' * int(contribution + 1))
 print
-print "Dontribution:"
-for item in sorted(number_contribution.keys()):
-    print "%-10d"%(number_distribution[item]),
-print
-

@@ -4,13 +4,37 @@ import sys
 import math
 import collections
 
-'''
-Print distributions of positive numbers. There should be one number per line.
-The first argument can set TimeInterval.
-The second arguemnt can set the max value of the time intervals.
-'''
+from optparse import OptionParser
+
+def print_stars(span, data, total, total_stars=150):
+    keys = sorted(data.keys())
+    for key in keys:
+        num = data[key]
+        print "%-7s %10.2f%%: %s"%(key * span, num * 100/ float(total), '*' * int(num * total_stars / float(total) + 1))
+
+def print_contribution(number_contribution, span):
+    print_stars(span, number_contribution, sum(numbers))
+
+def print_groups(groups):
+    print_stars(1, groups, sum(groups.values()))
+
+def print_accumulation(number_distribution, span):
+    number_accumulation = {}
+    keys = sorted(number_distribution.keys())
+    number_accumulation[0] = number_distribution[keys[0]]
+    for i in range(1, len(keys)):
+        number_accumulation[keys[i]] = number_accumulation[keys[i - 1]] + number_distribution[keys[i]]
+    print_stars(span, number_accumulation, max(number_accumulation.values()), total_stars=80)
+
+def print_distribution(number_distribution, span, end):
+    for number in numbers:
+        interval = min(number, end) / span
+        number_distribution[interval] += 1
+    print_stars(span, number_distribution, len(numbers))
 
 def naive_variance(data):
+    if len(data) == 1:
+        return 0
     n = 0
     Sum = 0
     Sum_sqr = 0
@@ -23,41 +47,61 @@ def naive_variance(data):
     variance = (Sum_sqr - ((Sum*Sum)/n))/(n - 1)
     return variance
 
-numbers = sorted(int(line) for line in sys.stdin if line.strip() if int(line) >= 0)
+def print_ratios():
+    ratios = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1]
+    for ratio in ratios:
+        print "Top %-3d%%:\t"%(ratio * 100),
+        number_part = numbers[int(len(numbers) * (1 - ratio)):]
+        print("average=%-10.2f\tmax=%-10d\tmin=%-10d\tstdev=%-10.2f\ttotal_num=%-10d"% (sum(number_part) / float(len(number_part)),
+                                                                                        max(number_part),
+                                                                                        min(number_part),
+                                                                                        math.sqrt(naive_variance(number_part)),
+                                                                                        len(number_part)))
 
-ratios = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1]
-number_len = len(numbers)
-for ratio in ratios:
-    print "Top %-3d%%:\t"%(ratio * 100),
-    number_part = numbers[int(number_len * (1 - ratio)):]
-    print("average=%-10.2f\tmax=%-10d\tmin=%-10d\tstdev=%-10.2f\ttotal_num=%-10d"%(sum(number_part) / float(len(number_part)), max(number_part), min(number_part), math.sqrt(naive_variance(number_part)), len(number_part)))
+if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option('-s', '--step', help='bin size', dest='span', type='int', default=-1)
+    parser.add_option('-e', '--end', help='max column in the distribution', dest='end', type='int', default=-1)
+    parser.add_option('-a', '--accumulate', help='accumulation', dest='use_accumulcation', action="store_true", default=False)
+    parser.add_option('-c', '--contribution', help='calculate contribution', dest='use_contribution', action="store_true", default=False)
+    parser.add_option('-g', '--group', help='group by first column', dest='use_group', action="store_true", default=False)
 
-end = numbers[-1]
-if len(sys.argv) >= 2:
-    span = int(sys.argv[1])
-    if len(sys.argv) == 3:
-        end = int(sys.argv[2])
-else:
-    span = max(numbers) / 15
+    (options, args) = parser.parse_args()
 
-number_contribution = collections.Counter()
-number_distribution = collections.Counter()
-for number in numbers:
-    interval = min(number, end) / span
-    number_contribution[interval] += number
-    number_distribution[interval] += 1
+    if not options.use_group:
+        numbers = sorted(int(line) for line in sys.stdin if line.strip() if int(line) >= 0)
+    else:
+        pairs = [line.strip().split() for line in sys.stdin if line.strip()]
+        numbers = []
+        groups = collections.Counter()
+        for pair in pairs:
+            t, n = pair[0], int(pair[1])
+            if n >= 0:
+                numbers.append(n)
+                groups[t] += n
+        numbers = sorted(numbers)
 
-# Printing...
-keys = sorted(number_contribution.keys())
-total_stars = 250
-print 'Distribution'
-for i in range(len(number_contribution)):
-    distribution = number_distribution[keys[i]]
-    print "%-7s %10.2f: %s"%(i * span, number_distribution[keys[i]],'*' * int(distribution * total_stars / float(len(numbers)) + 1))
-print
+    if options.end == -1:
+        options.end = numbers[-1]
+    if options.span == -1:
+        options.span = 100000
 
-print 'Contribution'
-for i in range(len(number_contribution)):
-    contribution = number_contribution[keys[i]] / float(sum(numbers))
-    print "%-7s %10.2f%%: %s"%(i * span, contribution * 100, '*' * int(total_stars * contribution + 1))
-print
+    if options.use_contribution:
+        number_contribution = collections.Counter()
+        for number in numbers:
+            interval = min(number, options.end) / options.span
+            number_contribution[interval] += number
+        print_contribution(number_contribution, options.span)
+        sys.exit(0)
+
+    if options.use_group:
+        print_groups(groups)
+        sys.exit(0)
+
+    # Distribution and Accumulation
+    number_distribution = collections.Counter()
+    print_distribution(number_distribution, options.span, options.end)
+    if options.use_accumulcation:
+        print_accumulation(number_distribution, options.span)
+
+    print_ratios()

@@ -8,7 +8,9 @@ Column-wise printing average of integer values
 sum = []
 count = 0
 for line in sys.stdin:
-    items = [int(v) for v in line.strip().split()]
+    items = [float(v) for v in line.strip().split()]
+    if not items:
+        continue
     if not sum:
         sum = items
     else:

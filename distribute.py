@@ -2,12 +2,12 @@
 
 import sys
 import math
-import collections
 
 from optparse import OptionParser
 
 def print_stars(span, data, total, total_stars=150):
-    keys = sorted(data.keys())
+    keys = data.keys()
+    keys.sort()
     for key in keys:
         num = data[key]
         print "%-7s %10.2f%%: %s"%(key * span, num * 100/ float(total), '*' * int(num * total_stars / float(total) + 1))
@@ -20,7 +20,8 @@ def print_groups(groups):
 
 def print_accumulation(number_distribution, span):
     number_accumulation = {}
-    keys = sorted(number_distribution.keys())
+    keys = number_distribution.keys()
+    keys.sort()
     number_accumulation[0] = number_distribution[keys[0]]
     for i in range(1, len(keys)):
         number_accumulation[keys[i]] = number_accumulation[keys[i - 1]] + number_distribution[keys[i]]
@@ -29,6 +30,7 @@ def print_accumulation(number_distribution, span):
 def print_distribution(number_distribution, span, end):
     for number in numbers:
         interval = min(number, end) / span
+        number_distribution.setdefault(interval, 0)
         number_distribution[interval] += 1
     print_stars(span, number_distribution, len(numbers))
 
@@ -69,17 +71,19 @@ if __name__ == '__main__':
     (options, args) = parser.parse_args()
 
     if not options.use_group:
-        numbers = sorted(int(line) for line in sys.stdin if line.strip() if int(line) >= 0)
+        numbers = [int(line) for line in sys.stdin if line.strip() if int(line) >= 0]
+        numbers.sort()
     else:
         pairs = [line.strip().split() for line in sys.stdin if line.strip()]
         numbers = []
-        groups = collections.Counter()
+        groups = {}
         for pair in pairs:
             t, n = pair[0], int(pair[1])
             if n >= 0:
                 numbers.append(n)
+                groups.setdefault(t, 0)
                 groups[t] += n
-        numbers = sorted(numbers)
+        numbers.sort()
 
     if options.end == -1:
         options.end = numbers[-1]
@@ -87,9 +91,10 @@ if __name__ == '__main__':
         options.span = 100000
 
     if options.use_contribution:
-        number_contribution = collections.Counter()
+        number_contribution = {}
         for number in numbers:
             interval = min(number, options.end) / options.span
+            number_contribution.setdefault(interval, 0)
             number_contribution[interval] += number
         print_contribution(number_contribution, options.span)
         sys.exit(0)
@@ -99,7 +104,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # Distribution and Accumulation
-    number_distribution = collections.Counter()
+    number_distribution = {}
     print_distribution(number_distribution, options.span, options.end)
     if options.use_accumulcation:
         print_accumulation(number_distribution, options.span)

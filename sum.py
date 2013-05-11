@@ -2,4 +2,4 @@
 import sys
 
 for line in sys.stdin:
-    print sum(int(v) for v in line.strip().split(' '))
+    print sum(float(v) for v in line.strip().split(' '))

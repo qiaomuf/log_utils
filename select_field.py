@@ -17,11 +17,17 @@ try:
 except:
     file = sys.stdin
 
+def any(values):
+    for v in values:
+        if v:
+            return True
+    return False
+
 selected_count = 0
 total_count = 0
 for line in file:
     total_count += 1
-    selected_fields = dict((field, 0) for field in fields_to_pick)
+    selected_fields = dict([(field, 0) for field in fields_to_pick])
     items = line.strip().split()
     if options.print_time:
         curr_time = items[2][:5]
@@ -38,7 +44,7 @@ for line in file:
             selected_fields[field_string[0]] = field_string[1]
     if not any(selected_fields.values()):
         continue
-    fields_str = ' '.join(str(selected_fields[field]) for field in fields_to_pick)
+    fields_str = ' '.join([str(selected_fields[field]) for field in fields_to_pick])
     if options.print_time:
         print curr_time + ' ' + fields_str
     elif options.print_pid:

@@ -5,12 +5,12 @@ import math
 
 from optparse import OptionParser
 
-def print_stars(span, data, total, total_stars=150):
+def print_stars(span, data, total, total_stars=100):
     keys = data.keys()
     keys.sort()
     for key in keys:
         num = data[key]
-        print "%-7s %10.2f%%: %s"%(key * span, num * 100/ float(total), '*' * int(num * total_stars / float(total) + 1))
+        print "%-7s %10.2f%% %s"%(key * span, num * 100/ float(total), '*' * int(num * total_stars / float(total) + 1))
 
 def print_contribution(number_contribution, span):
     print_stars(span, number_contribution, sum(numbers))
@@ -22,7 +22,7 @@ def print_accumulation(number_distribution, span):
     number_accumulation = {}
     keys = number_distribution.keys()
     keys.sort()
-    number_accumulation[0] = number_distribution[keys[0]]
+    number_accumulation[keys[0]] = number_distribution[keys[0]]
     for i in range(1, len(keys)):
         number_accumulation[keys[i]] = number_accumulation[keys[i - 1]] + number_distribution[keys[i]]
     print_stars(span, number_accumulation, max(number_accumulation.values()), total_stars=80)
@@ -49,11 +49,15 @@ def naive_variance(data):
     variance = (Sum_sqr - ((Sum*Sum)/n))/(n - 1)
     return variance
 
-def print_ratios():
-    ratios = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 1]
+def print_ratios(bottom):
+    ratios = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10, 0.15, 0.20, 0.25, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 1]
     for ratio in ratios:
-        print "Top %-3d%%:\t"%(ratio * 100),
-        number_part = numbers[int(len(numbers) * (1 - ratio)):]
+        if bottom:
+            print "Bottom %-3d%%:\t"%(ratio * 100),
+            number_part = numbers[:int(len(numbers) * ratio)]
+        else:
+            print "Top %-3d%%:\t"%(ratio * 100),
+            number_part = numbers[int(len(numbers) * (1 - ratio)):]
         print("average=%-10.2f\tmax=%-10d\tmin=%-10d\tstdev=%-10.2f\ttotal_num=%-10d"% (sum(number_part) / float(len(number_part)),
                                                                                         max(number_part),
                                                                                         min(number_part),
@@ -67,18 +71,19 @@ if __name__ == '__main__':
     parser.add_option('-a', '--accumulate', help='accumulation', dest='use_accumulcation', action="store_true", default=False)
     parser.add_option('-c', '--contribution', help='calculate contribution', dest='use_contribution', action="store_true", default=False)
     parser.add_option('-g', '--group', help='group by first column', dest='use_group', action="store_true", default=False)
+    parser.add_option('-b', '--bottom', help='Use bottom instead of top', dest='bottom', action="store_true", default=False)
 
     (options, args) = parser.parse_args()
 
     if not options.use_group:
-        numbers = [int(line) for line in sys.stdin if line.strip() if int(line) >= 0]
+        numbers = [float(line) for line in sys.stdin if line.strip() if float(line) >= 0]
         numbers.sort()
     else:
         pairs = [line.strip().split() for line in sys.stdin if line.strip()]
         numbers = []
         groups = {}
         for pair in pairs:
-            t, n = pair[0], int(pair[1])
+            t, n = pair[0], float(pair[1])
             if n >= 0:
                 numbers.append(n)
                 groups.setdefault(t, 0)
@@ -109,4 +114,4 @@ if __name__ == '__main__':
     if options.use_accumulcation:
         print_accumulation(number_distribution, options.span)
 
-    print_ratios()
+    print_ratios(options.bottom)

@@ -29,7 +29,7 @@ def print_accumulation(number_distribution, span):
 
 def print_distribution(number_distribution, span, end):
     for number in numbers:
-        interval = min(number, end) / span
+        interval = int(min(number, end) / span)
         number_distribution.setdefault(interval, 0)
         number_distribution[interval] += 1
     print_stars(span, number_distribution, len(numbers))
@@ -93,12 +93,12 @@ if __name__ == '__main__':
     if options.end == -1:
         options.end = numbers[-1]
     if options.span == -1:
-        options.span = 100000
+        options.span = 10000
 
     if options.use_contribution:
         number_contribution = {}
         for number in numbers:
-            interval = min(number, options.end) / options.span
+            interval = int(min(number, options.end) / options.span)
             number_contribution.setdefault(interval, 0)
             number_contribution[interval] += number
         print_contribution(number_contribution, options.span)

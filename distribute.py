@@ -6,11 +6,15 @@ import math
 from optparse import OptionParser
 
 def print_stars(span, data, total, total_stars=100):
-    keys = data.keys()
-    keys.sort()
-    for key in keys:
-        num = data[key]
-        print "%-7s %10.2f%% %s"%(key * span, num * 100/ float(total), '*' * int(num * total_stars / float(total) + 1))
+    if options.use_matplotlib:
+        import matplotlib
+        matplotlib.pyplot.hist(data, 100)
+    else:
+        keys = data.keys()
+        keys.sort()
+        for key in keys:
+            num = data[key]
+            print "%-7s %10.2f%% %s"%(key * span, num * 100/ float(total), '*' * int(num * total_stars / float(total) + 1))
 
 def print_contribution(number_contribution, span):
     print_stars(span, number_contribution, sum(numbers))
@@ -72,6 +76,7 @@ if __name__ == '__main__':
     parser.add_option('-c', '--contribution', help='calculate contribution', dest='use_contribution', action="store_true", default=False)
     parser.add_option('-g', '--group', help='group by first column', dest='use_group', action="store_true", default=False)
     parser.add_option('-b', '--bottom', help='Use bottom instead of top', dest='bottom', action="store_true", default=False)
+    parser.add_option('-m', '--matplotlib', help='Use matplotlib to draw picture', dest='use_matplotlib', action="store_true", default=False)
 
     (options, args) = parser.parse_args()
 
